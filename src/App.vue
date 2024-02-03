@@ -2,47 +2,35 @@
   <div>
     <Header/>
     <div class="container">
-      <Balance :balance="+balance" />
+      <Balance :balance="balance" />
       <IncomeExpenses :income="+income" :expenses="+expenses" />
       <TransactionList :transactions="transactions" @transactionDeleted="handleTransactionDeleted"/>
-      <AddTransaction :transactions="transactions" @transactionSubmitted="handleTransactionSubmitted"/>
+      <AddTransaction @transactionSubmitted="handleTransactionSubmitted"/>
     </div>
   </div>
 </template>
 
-<script>
+<script setup>
 import Header from './components/Header.vue';
 import Balance from './components/Balance.vue';
 import IncomeExpenses from './components/IncomeExpenses.vue';
 import TransactionList from './components/TransactionList.vue';
 import AddTransaction from './components/AddTransaction.vue';
 
-import { ref, computed } from 'vue';
+import { ref, computed,onMounted} from 'vue';
 import {useToast} from 'vue-toastification'
-  export default {
-    name:'App',
-    components:{
-    Header,
-    Balance,
-    IncomeExpenses,
-    TransactionList,
-    AddTransaction,
-  },
-  setup(){
-      const transactions = ref([
-        {id:1,text:'Flower',amount:-19.99},
-        {id:2,text:'Salary',amount:229.97},
-        {id:3,text:'Book',amount:-10},
-        {id:4,text:'Camera',amount:150},
-      ])
-      const toast = useToast()
-      // Get Balance
-      const balance = computed(()=>{
-        return transactions.value.reduce((acc,trans)=>{
-          return acc + trans.amount
-        },0)
-      })
 
+
+const transactions = ref([])
+
+      onMounted(()=> {
+        const storedTransactions = JSON.parse(localStorage.getItem('transactions'))
+        if(storedTransactions){
+          transactions.value = storedTransactions._value
+        }
+      })
+      const toast = useToast()
+      
       // Get Income
 
       const income = computed(()=>{
@@ -60,31 +48,42 @@ import {useToast} from 'vue-toastification'
         },0)
       })
 
+      // Get Balance
+      const balance = computed(()=>{
+          return income.value + expenses.value
+        })
+
       // Add Transaction
-      function handleTransactionSubmitted(data){
-        transactions.value.push(data)
+      const handleTransactionSubmitted=(transaction)=>{
+        const newTransaction = {
+          id:generateUniqueId(),
+          text:transaction.text,
+          amount:transaction.amount,
+        }
+        transactions.value = [...transactions.value,newTransaction];
+        storeTransactionsToLocalStorage();
         toast.success('Transaction added successfully')
-        return
       }
 
       // Delete transaction
 
       function handleTransactionDeleted(id){
         transactions.value = transactions.value.filter((eachTran) => eachTran.id !== id)
+        storeTransactionsToLocalStorage()
         toast.success('Transaction deleted successfully')
       }
 
-      
-      return {
-        transactions,
-        balance,
-        income,
-        expenses,
-        handleTransactionSubmitted,
-        handleTransactionDeleted,
+      // store transactions in localStorage
+      const storeTransactionsToLocalStorage = () => {
+        localStorage.setItem('transactions',JSON.stringify(transactions))
       }
-    }
-  }
+
+      const generateUniqueId = () => {
+        return Math.floor(Math.random() * 10000000)
+      }
+
+
+  
 </script>
 
 <style lang="scss" scoped>

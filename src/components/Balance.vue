@@ -5,11 +5,12 @@
   </div>
 </template>
 
-<script>
-  export default {
-    name:'Balance',
-    props:['balance']
-  }
+<script >
+
+export default {
+  props:['balance']
+}
+
 </script>
 
 <style scoped>

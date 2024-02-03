@@ -11,49 +11,38 @@
       (negative - expense, positive - income)</label>
       <input type="text" id="amount" placeholder="Enter amount..." v-model="amount">
     </div>
-    <button class="btn">Add transaction</button>
+    <button type="submit" class="btn">Add transaction</button>
     </form>
   </div>
 </template>
 
-<script>
-import { reactive, toRefs, } from 'vue'
+<script setup>
+import {  ref, } from 'vue'
 import {useToast} from 'vue-toastification'
-  export default {
-    name:'AddTransaction',
-    props:['transactions'],
-    setup(props,context){
-      const formData = reactive({
-        text:'',
-        amount:''
-      })
+  
 
+const text = ref('')
+const amount = ref('')
 
-      const toast = useToast()
+const emit = defineEmits(['transactionSubmitted'])
+
+const toast = useToast()
 
       function addTransaction(){
-        if(!formData.text || !formData.amount){
+        if(!text.value || !amount.value){
             toast.error('Both fiedls must be filled')
             return;
         }
-        const length = props.transactions.length - 1
         const newTransaction = {
-          id:props.transactions[length].id+1,
-          text:formData.text,
-          amount:parseFloat(formData.amount),
+          text:text.value,
+          amount:parseFloat(amount.value),
         }
-        context.emit('transactionSubmitted',newTransaction)
 
-        formData.text = ""
-        formData.amount = ''
-      }
+        emit('transactionSubmitted',newTransaction)
 
-      return{
-        ...toRefs(formData),
-        addTransaction,
-      }
-    }
-  }
+        text.value = ''
+        amount.value = ''
+      } 
 </script>
 
 <style scoped>
